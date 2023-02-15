@@ -1,0 +1,63 @@
+name: "Terraform"
+on:
+  workflow_dispatch:
+    inputs:
+      # Terraform action you want to perform
+      action:
+        description: 'Terraform Action to Perform'
+        type: choice
+        options:
+        - Terraform_apply
+        - Terraform_destroy
+
+jobs:
+  terraform_apply:
+    name: "Terraform_apply"
+    if: ${{ github.event.inputs.action == 'Terraform_apply' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - run: sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+      - run: terraform -v
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve -input=false
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  
+  terraform_destroy:
+    name: "Terraform_destroy"
+    if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - run: sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+      - run: terraform -v
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Terraform Destroy
+        id: destroy
+        run: terraform destroy -auto-approve -input=false
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
